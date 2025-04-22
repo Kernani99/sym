@@ -1,9 +1,8 @@
-
 <!DOCTYPE html>
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <title>نظام نتائج التلاميذ</title>
+    <title>متابعة طلبات المنصة الإلكترونية</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body {
@@ -15,14 +14,14 @@
         }
 
         header {
-            background-color: #3f51b5;
+            background-color: #db092b;
             color: white;
             padding: 20px;
             text-align: center;
         }
 
         header img {
-            height: 100px;
+            height: 60px;
             margin-bottom: 10px;
         }
 
@@ -50,14 +49,14 @@
             font-size: 16px;
             border: none;
             border-radius: 8px;
-            background-color: #3f51b5;
+            background-color: #db092b;
             color: white;
             cursor: pointer;
             margin-top: 10px;
         }
 
         button:hover {
-            background-color: #303f9f;
+            background-color: #DB092B;
         }
 
         .result {
@@ -79,8 +78,9 @@
 <body>
 
 <header>
-    <img src="https://upload.wikimedia.org/wikipedia/commons/4/4e/Pleiades_logo_2010.png" alt="شعار الشركة" style="width: 200px;">
-    <h1>نظام عرض نتائج التلاميذ</h1>
+<img src="https://i.imgur.com/cEUkK67.png" alt="شعار الشركة" style="width: 190px; height: auto;">
+
+    <h1>متابعة طلبات المنصة الإلكترونية</h1>
 </header>
 
 <div class="container" id="loginBox">
@@ -92,8 +92,8 @@
 </div>
 
 <div class="container" id="mainContent" style="display:none;">
-    <h3>أدخل رقمك الشخصي</h3>
-    <input type="text" id="studentId" placeholder="رقم الطالب">
+    <h3>أدخل رقم هاتفك </h3>
+    <input type="text" id="studentId" placeholder="رقم الهاتف المسجل">
     <br>
     <button onclick="showResult()">عرض النتيجة</button>
     <div class="result" id="resultBox"></div>
@@ -101,24 +101,23 @@
 </div>
 
 <script>
-    const encodedPassword = "MTIzNDU2"; // ← كلمة المرور مشفرة (123456)
+    const password = "sym123"; // غيّر كلمة المرور حسب الرغبة
     let students = {};
 
     function verifyPassword() {
         const input = document.getElementById("passwordInput").value;
-        const decoded = atob(encodedPassword);
         const errorText = document.getElementById("errorText");
-        if (input === decoded) {
+        if (input === password) {
             document.getElementById("loginBox").style.display = "none";
             document.getElementById("mainContent").style.display = "block";
-            loadExcelFromURL();
+            loadExcelFromURL(); // تحميل البيانات بعد الدخول
         } else {
             errorText.textContent = "كلمة المرور غير صحيحة.";
         }
     }
 
     async function loadExcelFromURL() {
-        const url = "https://example.com/results.xlsx"; // ← غيّر هذا الرابط إلى ملف Excel مباشر
+        const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTgq_fCVYPzADsm5bwrukjW-3F5YuwXNpwRv6R4lOpqubU7HVTbXo_F_neHq6KdagnxfM0eDp8Lx2MK/pub?output=xlsx"; // ✳️ غيّر هذا الرابط إلى رابط Excel مباشر
         try {
             const response = await fetch(url);
             const arrayBuffer = await response.arrayBuffer();
@@ -136,9 +135,9 @@
                 };
             });
 
-            alert("تم تحميل بيانات الطلاب بنجاح!");
+            alert("يمكنك البحث");
         } catch (error) {
-            alert("فشل في تحميل ملف النتائج.");
+            alert("يوجد مشكل في الموقع.");
             console.error(error);
         }
     }
@@ -153,9 +152,9 @@
             resultBox.innerHTML = `
                 <div id="printArea">
                     <h3>الاسم: ${s.name}</h3>
-                    <p>الدرجة: ${s.grade}</p>
-                    <p>الملاحظة: ${s.note}</p>
-                    <p>الحالة: ${s.status}</p>
+                    <p>نوع الدراجة: ${s.grade}</p>
+                    <p>الولاية: ${s.note}</p>
+                    <p> حالة الطلب: ${s.status}</p>
                 </div>
             `;
             printBtn.style.display = "inline-block";
@@ -168,7 +167,7 @@
     function printResult() {
         const content = document.getElementById("printArea").innerHTML;
         const w = window.open('', '', 'width=800,height=600');
-        w.document.write('<html><head><title>نتيجة الطالب</title></head><body style="direction:rtl;font-family:Cairo;">');
+        w.document.write('<html><head><title>نتيجة الطلب</title></head><body style="direction:rtl;font-family:Cairo;">');
         w.document.write(content);
         w.document.write('</body></html>');
         w.document.close();
@@ -178,3 +177,5 @@
 
 </body>
 </html>
+
+
