@@ -8,7 +8,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* أنماط CSS مكتملة */
         body {
             font-family: 'Cairo', sans-serif;
             direction: rtl;
@@ -89,16 +88,38 @@
             animation: spin 1s linear infinite;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
         .error-msg {
             color: red;
             padding: 15px;
             background: #ffecec;
             border-radius: 8px;
             margin: 15px 0;
+        }
+
+        .timestamp {
+            font-size: 1.2em;
+            color: #666;
+            margin-top: 15px;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+                margin: 15px;
+            }
+            
+            input[type="text"], input[type="password"] {
+                width: 90%;
+            }
         }
     </style>
 </head>
@@ -118,7 +139,7 @@
 
 <div class="container" id="mainSection" style="display: none;">
     <h2>بحث عن طلب</h2>
-    <input type="text" id="searchInput" placeholder="ادخل رقم الهاتف أو الرقم الوطني">
+    <input type="text" id="searchInput" placeholder="ادخل رقم الهاتف، الرقم الوطني، رقم التسجيل أو الاسم">
     <button onclick="searchRequest()">بحث</button>
     
     <div id="loading" class="loading" style="display: none;">
@@ -166,9 +187,10 @@
                 complete: (results) => {
                     config.requests = {};
                     results.data.forEach(row => {
-                        const key = row["رقم الهاتف"] || row["رقم التعريف"];
+                        const key = row["رقم التسجيل"] || row["رقم الهاتف"] || row["رقم التعريف"];
                         if(key) {
                             config.requests[key] = {
+                                regNumber: row["رقم التسجيل"],
                                 timestamp: row.Timestamp,
                                 email: row["Email Address"],
                                 name: row["الإسم واللقب"],
@@ -182,7 +204,6 @@
                         }
                     });
                     showLoading(false);
-                    alert("تم تحميل " + Object.keys(config.requests).length + " طلبًا بنجاح");
                 },
                 error: (err) => {
                     throw new Error("خطأ في قراءة الملف: " + err.message);
@@ -201,30 +222,40 @@
         const resultDiv = document.getElementById("resultContainer");
         
         if(!searchKey) {
-            showError("الرجاء إدخال رقم للبحث");
+            showError("الرجاء إدخال رقم أو اسم للبحث");
             return;
         }
         
         showLoading(true);
         
         setTimeout(() => {
-            const request = config.requests[searchKey];
-            if(request) {
-                resultDiv.innerHTML = `
+            // البحث بالإسم أو الرقم
+            const foundRequests = Object.values(config.requests).filter(request => 
+                (request.regNumber && request.regNumber.includes(searchKey)) ||
+                (request.phone && request.phone.includes(searchKey)) ||
+                (request.nationalID && request.nationalID.includes(searchKey)) ||
+                (request.name && request.name.includes(searchKey))
+            );
+
+            if(foundRequests.length > 0) {
+                resultDiv.innerHTML = foundRequests.map(request => `
                     <div class="result-item">
                         <h3>تفاصيل الطلب</h3>
+                        ${request.regNumber ? `<p><strong>رقم التسجيل:</strong> ${request.regNumber}</p>` : ''}
                         <p><strong>الاسم:</strong> ${request.name}</p>
                         <p><strong>رقم الهاتف:</strong> ${request.phone}</p>
-                        <p><strong>الرقم الوطني:</strong> ${request.nationalID}</p>
+                        ${request.nationalID ? `<p><strong>الرقم الوطني:</strong> ${request.nationalID}</p>` : ''}
                         <p><strong>الولاية:</strong> ${request.state}</p>
                         <p><strong>الدائرة/البلدية:</strong> ${request.city}</p>
                         <p><strong>نوع الدراجة:</strong> ${request.bikeType}</p>
                         <p><strong>الحالة:</strong> <span style="color:${getStatusColor(request.status)}">${request.status}</span></p>
-                        <p><small>تاريخ التسجيل: ${request.timestamp}</small></p>
+                        <div class="timestamp">
+                            <i class="fas fa-calendar-alt"></i> تاريخ التسجيل: ${request.timestamp}
+                        </div>
                     </div>
-                `;
+                `).join('');
             } else {
-                showError("لا يوجد طلب مسجل بهذا الرقم");
+                showError("لا يوجد طلب مسجل بهذا الرقم أو الاسم");
             }
             showLoading(false);
         }, 800);
@@ -233,6 +264,9 @@
     // دالات مساعدة
     function showLoading(show) {
         document.getElementById("loading").style.display = show ? "block" : "none";
+        if(show) {
+            document.getElementById("resultContainer").innerHTML = "";
+        }
     }
 
     function showError(message) {
@@ -243,8 +277,10 @@
     function getStatusColor(status) {
         const colors = {
             "مكتمل": "#4CAF50",
+            "مقبول": "#4CAF50",
             "مرفوض": "#F44336",
-            "قيد المعالجة": "#FF9800"
+            "قيد المعالجة": "#FF9800",
+            "قيد المراجعة": "#FF9800"
         };
         return colors[status] || "#2196F3";
     }
@@ -252,6 +288,11 @@
     // تفعيل البحث عند الضغط على انتر
     document.getElementById("searchInput").addEventListener("keypress", (e) => {
         if(e.key === "Enter") searchRequest();
+    });
+
+    // إخفاء رسائل الخطأ عند البدء بالكتابة
+    document.getElementById("searchInput").addEventListener("input", () => {
+        document.getElementById("resultContainer").innerHTML = "";
     });
 </script>
 
