@@ -2,8 +2,11 @@
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <title>متابعة طلبات المنصة الإلكترونية</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام متابعة الطلبات الإلكترونية</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
             font-family: 'Cairo', sans-serif;
@@ -11,171 +14,459 @@
             background-color: #f0f4f8;
             margin: 0;
             padding: 0;
+            min-height: 100vh;
         }
 
         header {
             background-color: #db092b;
             color: white;
-            padding: 20px;
+            padding: 15px;
             text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
         header img {
             height: 60px;
             margin-bottom: 10px;
+            max-width: 100%;
         }
 
         .container {
-            max-width: 600px;
+            max-width: 700px;
             background: white;
-            margin: 50px auto;
-            padding: 30px;
+            margin: 30px auto;
+            padding: 25px;
             border-radius: 15px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             text-align: center;
         }
 
         input[type="text"], input[type="password"] {
-            padding: 12px;
+            padding: 12px 15px;
             width: 80%;
-            margin: 10px 0;
+            margin: 15px 0;
             font-size: 16px;
-            border: 1px solid #ccc;
+            border: 1px solid #ddd;
             border-radius: 8px;
+            transition: border 0.3s;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        input[type="text"]:focus, input[type="password"]:focus {
+            border-color: #db092b;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(219, 9, 43, 0.1);
         }
 
         button {
-            padding: 12px 20px;
+            padding: 12px 25px;
             font-size: 16px;
             border: none;
             border-radius: 8px;
             background-color: #db092b;
             color: white;
             cursor: pointer;
-            margin-top: 10px;
+            margin-top: 15px;
+            transition: background-color 0.3s, transform 0.2s;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 500;
         }
 
         button:hover {
-            background-color: #DB092B;
+            background-color: #c00826;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
         }
 
         .result {
-            margin-top: 30px;
+            margin-top: 25px;
             background-color: #f9f9f9;
             padding: 20px;
             border-radius: 10px;
+            text-align: right;
+        }
+
+        .result h3 {
+            color: #db092b;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .result-item {
+            margin: 10px 0;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .result-item strong {
+            color: #333;
+            display: inline-block;
+            width: 120px;
         }
 
         #printBtn {
             background-color: #4caf50;
+            margin-top: 20px;
         }
 
         #printBtn:hover {
             background-color: #388e3c;
+        }
+
+        #errorText {
+            color: red;
+            margin-top: 10px;
+            height: 20px;
+        }
+
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+        }
+
+        .loading-animation {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            margin-bottom: 20px;
+        }
+
+        .loading-animation i {
+            position: absolute;
+            font-size: 40px;
+            color: #db092b;
+            animation: spin 1.5s linear infinite;
+        }
+
+        .loading-text {
+            color: #555;
+            font-size: 18px;
+            margin-top: 15px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .status-message {
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 20px 15px;
+                padding: 20px;
+                max-width: 100%;
+            }
+            
+            input[type="text"], input[type="password"] {
+                width: 90%;
+            }
+            
+            header img {
+                height: 50px;
+            }
+            
+            .result-item strong {
+                width: 100px;
+            }
         }
     </style>
 </head>
 <body>
 
 <header>
-<img src="https://i.imgur.com/cEUkK67.png" alt="شعار الشركة" style="width: 190px; height: auto;">
-
-    <h1>متابعة طلبات المنصة الإلكترونية</h1>
+    <img src="https://i.imgur.com/cEUkK67.png" alt="شعار الشركة" style="width: 190px; height: auto;">
+    <h1>نظام متابعة الطلبات الإلكترونية</h1>
 </header>
 
 <div class="container" id="loginBox">
     <h3>أدخل كلمة المرور للدخول</h3>
     <input type="password" id="passwordInput" placeholder="كلمة المرور">
     <br>
-    <button onclick="verifyPassword()">دخول</button>
-    <p id="errorText" style="color:red;"></p>
+    <button onclick="verifyPassword()" id="loginBtn">دخول</button>
+    <p id="errorText"></p>
 </div>
 
 <div class="container" id="mainContent" style="display:none;">
-    <h3>أدخل رقم هاتفك </h3>
-    <input type="text" id="studentId" placeholder="رقم الهاتف المسجل">
+    <h3>البحث عن الطلبات</h3>
+    <input type="text" id="searchInput" placeholder="رقم الهاتف أو رقم التعريف">
     <br>
-    <button onclick="showResult()">عرض النتيجة</button>
+    <button onclick="showResult()" id="searchBtn">بحث</button>
     <div class="result" id="resultBox"></div>
     <button id="printBtn" onclick="printResult()" style="display:none;">طباعة النتيجة</button>
 </div>
 
 <script>
-    const password = "sym123"; // غيّر كلمة المرور حسب الرغبة
-    let students = {};
+    const password = "sym123"; // كلمة المرور الحالية
+    let requestsData = {};
+    let isDataLoaded = false;
 
     function verifyPassword() {
         const input = document.getElementById("passwordInput").value;
         const errorText = document.getElementById("errorText");
-        if (input === password) {
-            document.getElementById("loginBox").style.display = "none";
-            document.getElementById("mainContent").style.display = "block";
-            loadExcelFromURL(); // تحميل البيانات بعد الدخول
-        } else {
-            errorText.textContent = "كلمة المرور غير صحيحة.";
+        const loginBtn = document.getElementById("loginBtn");
+        
+        if (!input) {
+            errorText.textContent = "الرجاء إدخال كلمة المرور";
+            return;
         }
+        
+        loginBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> جاري التحقق...';
+        loginBtn.disabled = true;
+        
+        setTimeout(() => {
+            if (input === password) {
+                document.getElementById("loginBox").style.display = "none";
+                document.getElementById("mainContent").style.display = "block";
+                loadExcelFromURL();
+            } else {
+                errorText.textContent = "كلمة المرور غير صحيحة";
+                loginBtn.innerHTML = 'دخول';
+                loginBtn.disabled = false;
+            }
+        }, 800);
     }
 
     async function loadExcelFromURL() {
-        const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTgq_fCVYPzADsm5bwrukjW-3F5YuwXNpwRv6R4lOpqubU7HVTbXo_F_neHq6KdagnxfM0eDp8Lx2MK/pub?output=xlsx"; // ✳️ غيّر هذا الرابط إلى رابط Excel مباشر
+        const url = "https://docs.google.com/spreadsheets/d/e/1idp_2xPprnmls8QdIuf5HRKGgraE7HHj9g7QYc7u0HQ/pub?output=xlsx";
+        const searchBtn = document.getElementById("searchBtn");
+        const resultBox = document.getElementById("resultBox");
+        
         try {
+            resultBox.innerHTML = `
+                <div class="loading-container">
+                    <div class="loading-animation">
+                        <i class="fas fa-circle-notch fa-spin"></i>
+                    </div>
+                    <p class="loading-text">جاري تحديث قاعدة البيانات</p>
+                    <p>يتم الآن تحميل أحدث بيانات الطلبات</p>
+                </div>
+            `;
+            
+            searchBtn.disabled = true;
+            searchBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> جاري التحميل...';
+            
             const response = await fetch(url);
+            if (!response.ok) throw new Error("تعذر الاتصال بخادم البيانات");
+            
             const arrayBuffer = await response.arrayBuffer();
             const workbook = XLSX.read(arrayBuffer, { type: 'array' });
             const sheet = workbook.Sheets[workbook.SheetNames[0]];
             const data = XLSX.utils.sheet_to_json(sheet);
 
-            students = {};
+            requestsData = {};
             data.forEach(row => {
-                students[row.ID] = {
-                    name: row.Name,
-                    grade: row.Grade,
-                    note: row.Note,
-                    status: row.Status
-                };
+                const phone = row["رقم الهاتف"];
+                const id = row["رقم التعريف"];
+                
+                if (phone || id) {
+                    const key = phone || id;
+                    requestsData[key] = {
+                        timestamp: row["Timestamp"] || "غير مسجل",
+                        email: row["Email Address"] || "غير متوفر",
+                        name: row["الإسم واللقب"] || "غير معروف",
+                        phone: phone || "غير مسجل",
+                        id: id || "غير مسجل",
+                        state: row["الــولاية"] || "غير محددة",
+                        district: row["الدائرة / البلدية"] || "غير محددة",
+                        bikeType: row["نوع الدراجة"] || "غير محدد",
+                        status: row["حالة الطلب"] || "قيد المراجعة"
+                    };
+                }
             });
 
-            alert("يمكنك البحث");
+            isDataLoaded = true;
+            searchBtn.disabled = false;
+            searchBtn.innerHTML = 'بحث';
+            
+            resultBox.innerHTML = `
+                <div class="status-message success">
+                    <i class="fas fa-check-circle"></i>
+                    <h4>تم تحديث البيانات بنجاح</h4>
+                    <p>تم تحميل ${Object.keys(requestsData).length} طلباً</p>
+                    <p>تاريخ التحديث: ${new Date().toLocaleString('ar-EG')}</p>
+                </div>
+            `;
+            
         } catch (error) {
-            alert("يوجد مشكل في الموقع.");
-            console.error(error);
+            console.error("Error:", error);
+            
+            resultBox.innerHTML = `
+                <div class="status-message error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h4>حدث خطأ في تحميل البيانات</h4>
+                    <p>${error.message || "سبب غير معروف"}</p>
+                    <button onclick="loadExcelFromURL()" class="retry-btn">
+                        <i class="fas fa-sync-alt"></i> إعادة المحاولة
+                    </button>
+                </div>
+            `;
+            
+            searchBtn.disabled = false;
+            searchBtn.innerHTML = 'بحث';
         }
     }
 
     function showResult() {
-        const id = document.getElementById("studentId").value.trim();
-        const resultBox = document.getElementById("resultBox");
-        const printBtn = document.getElementById("printBtn");
-
-        if (students[id]) {
-            const s = students[id];
+        if (!isDataLoaded) {
             resultBox.innerHTML = `
-                <div id="printArea">
-                    <h3>الاسم: ${s.name}</h3>
-                    <p>نوع الدراجة: ${s.grade}</p>
-                    <p>الولاية: ${s.note}</p>
-                    <p> حالة الطلب: ${s.status}</p>
+                <div class="loading-container">
+                    <div class="loading-animation">
+                        <i class="fas fa-circle-notch fa-spin"></i>
+                    </div>
+                    <p class="loading-text">جاري إعداد نظام البحث</p>
+                    <p>البيانات لا تزال قيد التحميل</p>
+                    <p>سيتم تشغيل البحث تلقائياً عند اكتمال التحميل</p>
                 </div>
             `;
-            printBtn.style.display = "inline-block";
-        } else {
-            resultBox.innerHTML = "<p style='color:red;'>الرقم غير موجود.</p>";
-            printBtn.style.display = "none";
+            return;
         }
+        
+        const searchValue = document.getElementById("searchInput").value.trim();
+        const resultBox = document.getElementById("resultBox");
+        const printBtn = document.getElementById("printBtn");
+        const searchBtn = document.getElementById("searchBtn");
+        
+        if (!searchValue) {
+            resultBox.innerHTML = `
+                <div class="status-message error">
+                    <i class="fas fa-info-circle"></i>
+                    <p>الرجاء إدخال رقم الهاتف أو رقم التعريف للبحث</p>
+                </div>
+            `;
+            printBtn.style.display = "none";
+            return;
+        }
+        
+        searchBtn.innerHTML = '<i class="fas fa-search"></i> جاري البحث...';
+        searchBtn.disabled = true;
+        
+        setTimeout(() => {
+            const request = requestsData[searchValue];
+            
+            if (request) {
+                resultBox.innerHTML = `
+                    <div id="printArea">
+                        <h3>تفاصيل الطلب</h3>
+                        <div class="result-item"><strong>تاريخ التسجيل:</strong> ${request.timestamp}</div>
+                        <div class="result-item"><strong>البريد الإلكتروني:</strong> ${request.email}</div>
+                        <div class="result-item"><strong>الإسم الكامل:</strong> ${request.name}</div>
+                        <div class="result-item"><strong>رقم الهاتف:</strong> ${request.phone}</div>
+                        <div class="result-item"><strong>رقم التعريف:</strong> ${request.id}</div>
+                        <div class="result-item"><strong>الولاية:</strong> ${request.state}</div>
+                        <div class="result-item"><strong>الدائرة/البلدية:</strong> ${request.district}</div>
+                        <div class="result-item"><strong>نوع الدراجة:</strong> ${request.bikeType}</div>
+                        <div class="result-item"><strong>حالة الطلب:</strong> <span style="color:${
+                            request.status.includes('مقبول') ? 'green' : 
+                            request.status.includes('مرفوض') ? 'red' : '#db092b'
+                        }">${request.status}</span></div>
+                    </div>
+                `;
+                printBtn.style.display = "inline-block";
+            } else {
+                resultBox.innerHTML = `
+                    <div class="status-message error">
+                        <i class="fas fa-search-minus"></i>
+                        <h4>لا توجد نتائج للبحث</h4>
+                        <p>لا يوجد طلب مسجل بالرقم المدخل</p>
+                        <p>الرجاء التأكد من الرقم والمحاولة مرة أخرى</p>
+                    </div>
+                `;
+                printBtn.style.display = "none";
+            }
+            
+            searchBtn.innerHTML = 'بحث';
+            searchBtn.disabled = false;
+        }, 800);
     }
 
     function printResult() {
         const content = document.getElementById("printArea").innerHTML;
         const w = window.open('', '', 'width=800,height=600');
-        w.document.write('<html><head><title>نتيجة الطلب</title></head><body style="direction:rtl;font-family:Cairo;">');
-        w.document.write(content);
-        w.document.write('</body></html>');
+        w.document.write(`
+            <html>
+                <head>
+                    <title>تفاصيل الطلب</title>
+                    <style>
+                        body {
+                            font-family: 'Cairo', sans-serif;
+                            direction: rtl;
+                            padding: 20px;
+                            line-height: 1.6;
+                        }
+                        h3 {
+                            color: #db092b;
+                            text-align: center;
+                            margin-bottom: 20px;
+                        }
+                        .result-item {
+                            margin: 15px 0;
+                            padding-bottom: 10px;
+                            border-bottom: 1px solid #eee;
+                        }
+                        strong {
+                            color: #333;
+                            display: inline-block;
+                            width: 120px;
+                        }
+                        @page {
+                            size: auto;
+                            margin: 10mm;
+                        }
+                    </style>
+                </head>
+                <body>
+                    ${content}
+                    <div style="text-align:center;color:#777;margin-top:30px;font-size:12px;">
+                        ${new Date().toLocaleString('ar-EG')} - نظام متابعة الطلبات الإلكترونية
+                    </div>
+                </body>
+            </html>
+        `);
         w.document.close();
-        w.print();
+        setTimeout(() => {
+            w.print();
+        }, 500);
     }
+
+    document.getElementById("passwordInput").addEventListener("keypress", function(e) {
+        if (e.key === "Enter") {
+            verifyPassword();
+        }
+    });
+    
+    document.getElementById("searchInput").addEventListener("keypress", function(e) {
+        if (e.key === "Enter") {
+            showResult();
+        }
+    });
 </script>
 
 </body>
 </html>
-
-
