@@ -3,468 +3,255 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام متابعة الطلبات الإلكترونية</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>نظام متابعة الطلبات الحكومية</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* أنماط CSS مكتملة */
         body {
             font-family: 'Cairo', sans-serif;
             direction: rtl;
-            background-color: #f0f4f8;
+            background-color: #f5f5f5;
             margin: 0;
             padding: 0;
-            min-height: 100vh;
         }
 
         header {
-            background-color: #db092b;
+            background: #db092b;
             color: white;
-            padding: 15px;
+            padding: 20px;
             text-align: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
-        header img {
-            height: 60px;
-            margin-bottom: 10px;
-            max-width: 100%;
+        .logo {
+            width: 150px;
+            height: auto;
+            margin-bottom: 15px;
         }
 
         .container {
-            max-width: 700px;
-            background: white;
+            max-width: 800px;
             margin: 30px auto;
+            background: white;
             padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            text-align: center;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
         }
 
         input[type="text"], input[type="password"] {
-            padding: 12px 15px;
             width: 80%;
-            margin: 15px 0;
-            font-size: 16px;
+            padding: 12px;
+            margin: 10px 0;
             border: 1px solid #ddd;
             border-radius: 8px;
-            transition: border 0.3s;
-            font-family: 'Cairo', sans-serif;
-        }
-
-        input[type="text"]:focus, input[type="password"]:focus {
-            border-color: #db092b;
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(219, 9, 43, 0.1);
+            font-size: 16px;
         }
 
         button {
-            padding: 12px 25px;
-            font-size: 16px;
-            border: none;
-            border-radius: 8px;
-            background-color: #db092b;
+            background: #db092b;
             color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
             cursor: pointer;
-            margin-top: 15px;
-            transition: background-color 0.3s, transform 0.2s;
-            font-family: 'Cairo', sans-serif;
-            font-weight: 500;
+            font-size: 16px;
+            transition: all 0.3s;
         }
 
         button:hover {
-            background-color: #c00826;
+            background: #b90824;
             transform: translateY(-2px);
         }
 
-        button:active {
-            transform: translateY(0);
-        }
-
-        .result {
+        .result-box {
             margin-top: 25px;
-            background-color: #f9f9f9;
             padding: 20px;
-            border-radius: 10px;
-            text-align: right;
-        }
-
-        .result h3 {
-            color: #db092b;
-            margin-bottom: 15px;
-            text-align: center;
+            background: #f9f9f9;
+            border-radius: 8px;
         }
 
         .result-item {
-            margin: 10px 0;
-            padding: 10px 0;
+            margin: 15px 0;
+            padding: 10px;
             border-bottom: 1px solid #eee;
         }
 
-        .result-item strong {
-            color: #333;
-            display: inline-block;
-            width: 120px;
-        }
-
-        #printBtn {
-            background-color: #4caf50;
-            margin-top: 20px;
-        }
-
-        #printBtn:hover {
-            background-color: #388e3c;
-        }
-
-        #errorText {
-            color: red;
-            margin-top: 10px;
-            height: 20px;
-        }
-
-        .loading-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+        .loading {
+            text-align: center;
             padding: 30px;
         }
 
-        .loading-animation {
-            position: relative;
-            width: 60px;
-            height: 60px;
-            margin-bottom: 20px;
-        }
-
-        .loading-animation i {
-            position: absolute;
+        .loading i {
             font-size: 40px;
             color: #db092b;
-            animation: spin 1.5s linear infinite;
-        }
-
-        .loading-text {
-            color: #555;
-            font-size: 18px;
-            margin-top: 15px;
-            text-align: center;
-            font-weight: 600;
-        }
-
-        .status-message {
-            padding: 20px;
-            border-radius: 8px;
-            margin: 15px 0;
-            text-align: center;
-            font-weight: 500;
-        }
-
-        .success {
-            background-color: #e8f5e9;
-            color: #2e7d32;
-            border: 1px solid #c8e6c9;
-        }
-
-        .error {
-            background-color: #ffebee;
-            color: #c62828;
-            border: 1px solid #ffcdd2;
+            animation: spin 1s linear infinite;
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            to { transform: rotate(360deg); }
         }
 
-        @media (max-width: 768px) {
-            .container {
-                margin: 20px 15px;
-                padding: 20px;
-                max-width: 100%;
-            }
-            
-            input[type="text"], input[type="password"] {
-                width: 90%;
-            }
-            
-            header img {
-                height: 50px;
-            }
-            
-            .result-item strong {
-                width: 100px;
-            }
+        .error-msg {
+            color: red;
+            padding: 15px;
+            background: #ffecec;
+            border-radius: 8px;
+            margin: 15px 0;
         }
     </style>
 </head>
 <body>
 
 <header>
-    <img src="https://i.imgur.com/cEUkK67.png" alt="شعار الشركة" style="width: 190px; height: auto;">
-    <h1>نظام متابعة الطلبات الإلكترونية</h1>
+    <img src="https://i.imgur.com/cEUkK67.png" class="logo" alt="شعار النظام">
+    <h1>منصة متابعة الطلبات الإلكترونية</h1>
 </header>
 
-<div class="container" id="loginBox">
-    <h3>أدخل كلمة المرور للدخول</h3>
-    <input type="password" id="passwordInput" placeholder="كلمة المرور">
-    <br>
-    <button onclick="verifyPassword()" id="loginBtn">دخول</button>
-    <p id="errorText"></p>
+<div class="container" id="loginSection">
+    <h2>الدخول للنظام</h2>
+    <input type="password" id="adminPass" placeholder="كلمة المرور الإدارية">
+    <button onclick="checkAdmin()">الدخول</button>
+    <div id="loginError"></div>
 </div>
 
-<div class="container" id="mainContent" style="display:none;">
-    <h3>البحث عن الطلبات</h3>
-    <input type="text" id="searchInput" placeholder="رقم الهاتف أو رقم التعريف">
-    <br>
-    <button onclick="showResult()" id="searchBtn">بحث</button>
-    <div class="result" id="resultBox"></div>
-    <button id="printBtn" onclick="printResult()" style="display:none;">طباعة النتيجة</button>
+<div class="container" id="mainSection" style="display: none;">
+    <h2>بحث عن طلب</h2>
+    <input type="text" id="searchInput" placeholder="ادخل رقم الهاتف أو الرقم الوطني">
+    <button onclick="searchRequest()">بحث</button>
+    
+    <div id="loading" class="loading" style="display: none;">
+        <i class="fas fa-circle-notch"></i>
+        <p>جاري البحث في قاعدة البيانات...</p>
+    </div>
+
+    <div id="resultContainer" class="result-box"></div>
 </div>
 
 <script>
-    const password = "sym123"; // كلمة المرور الحالية
-    let requestsData = {};
-    let isDataLoaded = false;
+    // إعدادات النظام
+    const config = {
+        password: "sym123", // كلمة المرور الإدارية
+        sheetURL: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRDd12Ivwe4_pxtKzIZpo3go_2BrGI7jMwQyrGV0S8CYZqHN3pF2fIHZBATv_khaqiaKQUmfc7YGgd7/pub?gid=0&single=true&output=csv",
+        requests: {}
+    };
 
-    function verifyPassword() {
-        const input = document.getElementById("passwordInput").value;
-        const errorText = document.getElementById("errorText");
-        const loginBtn = document.getElementById("loginBtn");
+    // دالة التحقق من الهوية
+    function checkAdmin() {
+        const passInput = document.getElementById("adminPass").value;
+        const errorDiv = document.getElementById("loginError");
         
-        if (!input) {
-            errorText.textContent = "الرجاء إدخال كلمة المرور";
+        if(passInput !== config.password) {
+            errorDiv.innerHTML = "<div class='error-msg'>كلمة المرور غير صحيحة!</div>";
             return;
         }
         
-        loginBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> جاري التحقق...';
-        loginBtn.disabled = true;
-        
-        setTimeout(() => {
-            if (input === password) {
-                document.getElementById("loginBox").style.display = "none";
-                document.getElementById("mainContent").style.display = "block";
-                loadExcelFromURL();
-            } else {
-                errorText.textContent = "كلمة المرور غير صحيحة";
-                loginBtn.innerHTML = 'دخول';
-                loginBtn.disabled = false;
-            }
-        }, 800);
+        document.getElementById("loginSection").style.display = "none";
+        document.getElementById("mainSection").style.display = "block";
+        loadSheetData();
     }
 
-    async function loadExcelFromURL() {
-        const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRDd12Ivwe4_pxtKzIZpo3go_2BrGI7jMwQyrGV0S8CYZqHN3pF2fIHZBATv_khaqiaKQUmfc7YGgd7/pub?gid=0&single=true&output=csv";
-        const searchBtn = document.getElementById("searchBtn");
-        const resultBox = document.getElementById("resultBox");
-        
+    // دالة تحميل البيانات من الجدول
+    async function loadSheetData() {
         try {
-            resultBox.innerHTML = `
-                <div class="loading-container">
-                    <div class="loading-animation">
-                        <i class="fas fa-circle-notch fa-spin"></i>
-                    </div>
-                    <p class="loading-text">جاري تحديث قاعدة البيانات</p>
-                    <p>يتم الآن تحميل أحدث بيانات الطلبات</p>
-                </div>
-            `;
+            showLoading(true);
+            const response = await fetch(config.sheetURL);
+            const csvData = await response.text();
             
-            searchBtn.disabled = true;
-            searchBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> جاري التحميل...';
-            
-            const response = await fetch(url);
-            if (!response.ok) throw new Error("تعذر الاتصال بخادم البيانات");
-            
-            const arrayBuffer = await response.arrayBuffer();
-            const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-            const sheet = workbook.Sheets[workbook.SheetNames[0]];
-            const data = XLSX.utils.sheet_to_json(sheet);
-
-            requestsData = {};
-            data.forEach(row => {
-                const phone = row["رقم الهاتف"];
-                const id = row["رقم التعريف"];
-                
-                if (phone || id) {
-                    const key = phone || id;
-                    requestsData[key] = {
-                        timestamp: row["Timestamp"] || "غير مسجل",
-                        email: row["Email Address"] || "غير متوفر",
-                        name: row["الإسم واللقب"] || "غير معروف",
-                        phone: phone || "غير مسجل",
-                        id: id || "غير مسجل",
-                        state: row["الــولاية"] || "غير محددة",
-                        district: row["الدائرة / البلدية"] || "غير محددة",
-                        bikeType: row["نوع الدراجة"] || "غير محدد",
-                        status: row["حالة الطلب"] || "قيد المراجعة"
-                    };
+            // تحليل البيانات باستخدام PapaParse
+            Papa.parse(csvData, {
+                header: true,
+                skipEmptyLines: true,
+                complete: (results) => {
+                    config.requests = {};
+                    results.data.forEach(row => {
+                        const key = row["رقم الهاتف"] || row["رقم التعريف"];
+                        if(key) {
+                            config.requests[key] = {
+                                timestamp: row.Timestamp,
+                                email: row["Email Address"],
+                                name: row["الإسم واللقب"],
+                                phone: row["رقم الهاتف"],
+                                nationalID: row["رقم التعريف"],
+                                state: row["الــولاية"],
+                                city: row["الدائرة / البلدية"],
+                                bikeType: row["نوع الدراجة"],
+                                status: row["حالة الطلب"] || "قيد المعالجة"
+                            };
+                        }
+                    });
+                    showLoading(false);
+                    alert("تم تحميل " + Object.keys(config.requests).length + " طلبًا بنجاح");
+                },
+                error: (err) => {
+                    throw new Error("خطأ في قراءة الملف: " + err.message);
                 }
             });
-
-            isDataLoaded = true;
-            searchBtn.disabled = false;
-            searchBtn.innerHTML = 'بحث';
-            
-            resultBox.innerHTML = `
-                <div class="status-message success">
-                    <i class="fas fa-check-circle"></i>
-                    <h4>تم تحديث البيانات بنجاح</h4>
-                    <p>تم تحميل ${Object.keys(requestsData).length} طلباً</p>
-                    <p>تاريخ التحديث: ${new Date().toLocaleString('ar-EG')}</p>
-                </div>
-            `;
             
         } catch (error) {
-            console.error("Error:", error);
-            
-            resultBox.innerHTML = `
-                <div class="status-message error">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <h4>حدث خطأ في تحميل البيانات</h4>
-                    <p>${error.message || "سبب غير معروف"}</p>
-                    <button onclick="loadExcelFromURL()" class="retry-btn">
-                        <i class="fas fa-sync-alt"></i> إعادة المحاولة
-                    </button>
-                </div>
-            `;
-            
-            searchBtn.disabled = false;
-            searchBtn.innerHTML = 'بحث';
+            showLoading(false);
+            showError("فشل في تحميل البيانات: " + error.message);
         }
     }
 
-    function showResult() {
-        if (!isDataLoaded) {
-            resultBox.innerHTML = `
-                <div class="loading-container">
-                    <div class="loading-animation">
-                        <i class="fas fa-circle-notch fa-spin"></i>
-                    </div>
-                    <p class="loading-text">جاري إعداد نظام البحث</p>
-                    <p>البيانات لا تزال قيد التحميل</p>
-                    <p>سيتم تشغيل البحث تلقائياً عند اكتمال التحميل</p>
-                </div>
-            `;
+    // دالة البحث
+    function searchRequest() {
+        const searchKey = document.getElementById("searchInput").value.trim();
+        const resultDiv = document.getElementById("resultContainer");
+        
+        if(!searchKey) {
+            showError("الرجاء إدخال رقم للبحث");
             return;
         }
         
-        const searchValue = document.getElementById("searchInput").value.trim();
-        const resultBox = document.getElementById("resultBox");
-        const printBtn = document.getElementById("printBtn");
-        const searchBtn = document.getElementById("searchBtn");
-        
-        if (!searchValue) {
-            resultBox.innerHTML = `
-                <div class="status-message error">
-                    <i class="fas fa-info-circle"></i>
-                    <p>الرجاء إدخال رقم الهاتف أو رقم التعريف للبحث</p>
-                </div>
-            `;
-            printBtn.style.display = "none";
-            return;
-        }
-        
-        searchBtn.innerHTML = '<i class="fas fa-search"></i> جاري البحث...';
-        searchBtn.disabled = true;
+        showLoading(true);
         
         setTimeout(() => {
-            const request = requestsData[searchValue];
-            
-            if (request) {
-                resultBox.innerHTML = `
-                    <div id="printArea">
+            const request = config.requests[searchKey];
+            if(request) {
+                resultDiv.innerHTML = `
+                    <div class="result-item">
                         <h3>تفاصيل الطلب</h3>
-                        <div class="result-item"><strong>تاريخ التسجيل:</strong> ${request.timestamp}</div>
-                        <div class="result-item"><strong>البريد الإلكتروني:</strong> ${request.email}</div>
-                        <div class="result-item"><strong>الإسم الكامل:</strong> ${request.name}</div>
-                        <div class="result-item"><strong>رقم الهاتف:</strong> ${request.phone}</div>
-                        <div class="result-item"><strong>رقم التعريف:</strong> ${request.id}</div>
-                        <div class="result-item"><strong>الولاية:</strong> ${request.state}</div>
-                        <div class="result-item"><strong>الدائرة/البلدية:</strong> ${request.district}</div>
-                        <div class="result-item"><strong>نوع الدراجة:</strong> ${request.bikeType}</div>
-                        <div class="result-item"><strong>حالة الطلب:</strong> <span style="color:${
-                            request.status.includes('مقبول') ? 'green' : 
-                            request.status.includes('مرفوض') ? 'red' : '#db092b'
-                        }">${request.status}</span></div>
+                        <p><strong>الاسم:</strong> ${request.name}</p>
+                        <p><strong>رقم الهاتف:</strong> ${request.phone}</p>
+                        <p><strong>الرقم الوطني:</strong> ${request.nationalID}</p>
+                        <p><strong>الولاية:</strong> ${request.state}</p>
+                        <p><strong>الدائرة/البلدية:</strong> ${request.city}</p>
+                        <p><strong>نوع الدراجة:</strong> ${request.bikeType}</p>
+                        <p><strong>الحالة:</strong> <span style="color:${getStatusColor(request.status)}">${request.status}</span></p>
+                        <p><small>تاريخ التسجيل: ${request.timestamp}</small></p>
                     </div>
                 `;
-                printBtn.style.display = "inline-block";
             } else {
-                resultBox.innerHTML = `
-                    <div class="status-message error">
-                        <i class="fas fa-search-minus"></i>
-                        <h4>لا توجد نتائج للبحث</h4>
-                        <p>لا يوجد طلب مسجل بالرقم المدخل</p>
-                        <p>الرجاء التأكد من الرقم والمحاولة مرة أخرى</p>
-                    </div>
-                `;
-                printBtn.style.display = "none";
+                showError("لا يوجد طلب مسجل بهذا الرقم");
             }
-            
-            searchBtn.innerHTML = 'بحث';
-            searchBtn.disabled = false;
+            showLoading(false);
         }, 800);
     }
 
-    function printResult() {
-        const content = document.getElementById("printArea").innerHTML;
-        const w = window.open('', '', 'width=800,height=600');
-        w.document.write(`
-            <html>
-                <head>
-                    <title>تفاصيل الطلب</title>
-                    <style>
-                        body {
-                            font-family: 'Cairo', sans-serif;
-                            direction: rtl;
-                            padding: 20px;
-                            line-height: 1.6;
-                        }
-                        h3 {
-                            color: #db092b;
-                            text-align: center;
-                            margin-bottom: 20px;
-                        }
-                        .result-item {
-                            margin: 15px 0;
-                            padding-bottom: 10px;
-                            border-bottom: 1px solid #eee;
-                        }
-                        strong {
-                            color: #333;
-                            display: inline-block;
-                            width: 120px;
-                        }
-                        @page {
-                            size: auto;
-                            margin: 10mm;
-                        }
-                    </style>
-                </head>
-                <body>
-                    ${content}
-                    <div style="text-align:center;color:#777;margin-top:30px;font-size:12px;">
-                        ${new Date().toLocaleString('ar-EG')} - نظام متابعة الطلبات الإلكترونية
-                    </div>
-                </body>
-            </html>
-        `);
-        w.document.close();
-        setTimeout(() => {
-            w.print();
-        }, 500);
+    // دالات مساعدة
+    function showLoading(show) {
+        document.getElementById("loading").style.display = show ? "block" : "none";
     }
 
-    document.getElementById("passwordInput").addEventListener("keypress", function(e) {
-        if (e.key === "Enter") {
-            verifyPassword();
-        }
-    });
-    
-    document.getElementById("searchInput").addEventListener("keypress", function(e) {
-        if (e.key === "Enter") {
-            showResult();
-        }
+    function showError(message) {
+        const resultDiv = document.getElementById("resultContainer");
+        resultDiv.innerHTML = `<div class="error-msg">${message}</div>`;
+    }
+
+    function getStatusColor(status) {
+        const colors = {
+            "مكتمل": "#4CAF50",
+            "مرفوض": "#F44336",
+            "قيد المعالجة": "#FF9800"
+        };
+        return colors[status] || "#2196F3";
+    }
+
+    // تفعيل البحث عند الضغط على انتر
+    document.getElementById("searchInput").addEventListener("keypress", (e) => {
+        if(e.key === "Enter") searchRequest();
     });
 </script>
 
